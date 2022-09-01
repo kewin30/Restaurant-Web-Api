@@ -25,6 +25,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using WebApplication1.Authorization;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebApplication1
 {
@@ -49,7 +50,7 @@ namespace WebApplication1
                 option.DefaultAuthenticateScheme = "Bearer";
                 option.DefaultScheme = "Bearer";
                 option.DefaultChallengeScheme = "Bearer";
-            }).AddJwtBearer(cfg=>
+            }).AddJwtBearer(cfg =>
             {
                 cfg.RequireHttpsMetadata = false;
                 cfg.SaveToken = true;
@@ -62,7 +63,7 @@ namespace WebApplication1
             });
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("HasNationality",builder=>builder.RequireClaim("Nationality","English","Polish"));
+                options.AddPolicy("HasNationality", builder => builder.RequireClaim("Nationality", "English", "Polish"));
                 options.AddPolicy("AtLeast20", builder => builder.AddRequirements(new MinimumAgeRequirement(20)));
                 options.AddPolicy("CreatedAtLeast2Restaurants",
                     builder => builder.AddRequirements(new CreatedMultipleRestaurantsRequirement(2)));
@@ -71,10 +72,10 @@ namespace WebApplication1
             services.AddScoped<IAuthorizationHandler, MinimumAgeRequirementHandler>();
             services.AddScoped<IAuthorizationHandler, ResourceOperationRequirementHandler>();
             services.AddControllers().AddFluentValidation();
-            services.AddDbContext<RestaurantDbContext>();
+            //services.AddDbContext<RestaurantDbContext>();
             services.AddScoped<RestaurantSeeder>();
             services.AddAutoMapper(this.GetType().Assembly);
-            services.AddScoped<IRestaurantService,RestaurantService>();
+            services.AddScoped<IRestaurantService, RestaurantService>();
             services.AddScoped<ErrorHandlingMiddleware>();
             services.AddScoped<TimeHandlingMiddleware>();
             services.AddScoped<IDishService, DishService>();
@@ -97,6 +98,8 @@ namespace WebApplication1
                     .AllowAnyOrigin();
                 });
             });
+            services.AddDbContext<RestaurantDbContext>
+                (options => options.UseSqlServer(Configuration.GetConnectionString("RestaurantDbConnection")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

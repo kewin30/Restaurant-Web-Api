@@ -25,10 +25,9 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles ="Admin,Manager")]
+        //[Authorize(Roles ="Admin,Manager")]
         public ActionResult CreateRestaurant([FromBody] CreateRestaurantDto dto)
         {
-            var userId = int.Parse(User.FindFirst(c => c.Type == ClaimTypes.NameIdentifier).Value);
             var id = _restaurantService.Create(dto);
 
             return Created($"/api/restaurant/{id}", null);
@@ -49,7 +48,8 @@ namespace WebApplication1.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "CreatedAtLeast2Restaurants")]
+        [AllowAnonymous]
+        //[Authorize(Policy = "CreatedAtLeast2Restaurants")]
         public ActionResult<IEnumerable<RestaurantDto>> GetAll([FromQuery] RestaurantQuery restaurantQuery)
         {
 
