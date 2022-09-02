@@ -1,6 +1,7 @@
 ﻿using FluentValidation.TestHelper;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using WebApplication1.Entities;
 using WebApplication1.Models;
 using WebApplication1.Models.Validators;
@@ -35,41 +36,100 @@ namespace WebApplication.IntegrationTests.Validators
             _dbContext.Users.AddRange(testUsers);
             _dbContext.SaveChanges();
         }
-        [Fact]
-        public void Validate_ForValidModel_ReturnsSuccess()
+        public static IEnumerable<object[]>GetSampleValidData()
         {
-            //Arrange
-            var model = new RegisterUserDto()
+            var List = new List<RegisterUserDto>()
             {
-                Email="test@test.com",
-                Password="Pass123",
-                ConfirmPassword= "Pass123"
+                new RegisterUserDto()
+                {
+                    Email="test@test.com",
+                    Password="Pass123",
+                    ConfirmPassword= "Pass123"
+                },
+                new RegisterUserDto()
+                {
+                    Email="test@test1.com",
+                    Password="Mypassword",
+                    ConfirmPassword= "Mypassword"
+                },
+                new RegisterUserDto()
+                {
+                    Email="test@test4.com",
+                    Password="MySuperSpecialPassword123",
+                    ConfirmPassword= "MySuperSpecialPassword123"
+                },
+                new RegisterUserDto()
+                {
+                    Email="ItsMyOwnEmail@gmail.com",
+                    Password="321drowssaP",
+                    ConfirmPassword= "321drowssaP"
+                }
             };
-           
+            return List.Select(q => new object[] { q });
+        }
+        [Theory]
+        [MemberData(nameof(GetSampleValidData))]
+        public void Validate_ForValidModel_ReturnsSuccess(RegisterUserDto model)
+        {
             var validator = new RegisterUserDtoValidator(_dbContext);
 
             //Act
 
             var result = validator.TestValidate(model);
+
+            //Assert
+
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Fact]
-        public void Validate_ForInvalidModel_ReturnsFailure()
+
+        public static IEnumerable<object[]> GetSampleInvalidData()
+        {
+            var List = new List<RegisterUserDto>()
+            {
+                new RegisterUserDto()
+                {
+                    Email = "test2@test.com",
+                    Password = "Pass123",
+                    ConfirmPassword = "Pass123"
+                },
+                new RegisterUserDto()
+                {
+                    Email="test@test1.com",
+                    Password="Mypassw",
+                    ConfirmPassword= "Mypassword"
+                },
+                new RegisterUserDto()
+                {
+                    Email="test@test4.com",
+                    Password="A",
+                    ConfirmPassword= "A"
+                },
+                new RegisterUserDto()
+                {
+                    Email="",
+                    Password="321drowssaP",
+                    ConfirmPassword= "321drowssaP"
+                },
+                new RegisterUserDto()
+                {
+                    Email="",
+                    Password="",
+                    ConfirmPassword= ""
+                }
+            };
+            return List.Select(q => new object[] { q });
+        }
+        [Theory]
+        [MemberData(nameof(GetSampleInvalidData))]
+        public void Validate_ForInvalidModel_ReturnsFailure(RegisterUserDto model)
         {
             //Arrange
-            var model = new RegisterUserDto()
-            {
-                Email = "test2@test.com",
-                Password = "Pass123",
-                ConfirmPassword = "Pass123"
-            };
-
             var validator = new RegisterUserDtoValidator(_dbContext);
 
             //Act
-
             var result = validator.TestValidate(model);
+            //Assert
             result.ShouldHaveAnyValidationError();
         }
     }
